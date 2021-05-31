@@ -10,10 +10,11 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QStyle
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize,Qt
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+       
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1378, 866)
         btnSize = QSize(16, 16)
@@ -107,18 +108,21 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
+
         self.label = QtWidgets.QLabel(self.layoutWidget)
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.verticalLayout.addWidget(self.label)
+
         self.label_5 = QtWidgets.QLabel(self.layoutWidget)
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label_5.setFont(font)
         self.label_5.setObjectName("label_5")
         self.verticalLayout.addWidget(self.label_5)
+
         self.label_6 = QtWidgets.QLabel(self.layoutWidget)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -148,28 +152,62 @@ class Ui_MainWindow(object):
         self.decodeButton.setFlat(False)
         self.decodeButton.setEnabled(True)
         self.decodeButton.setObjectName("decodeButton")
+
         self.textBrowser_2 = QtWidgets.QTextBrowser(self.centralwidget)
         self.textBrowser_2.setGeometry(QtCore.QRect(720, 660, 621, 151))
         self.textBrowser_2.setObjectName("textBrowser_2")
+
         self.label_7 = QtWidgets.QLabel(self.centralwidget)
         self.label_7.setGeometry(QtCore.QRect(80, 630, 71, 21))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_7.setFont(font)
         self.label_7.setObjectName("label_7")
+
         self.label_8 = QtWidgets.QLabel(self.centralwidget)
         self.label_8.setGeometry(QtCore.QRect(720, 640, 181, 16))
         font = QtGui.QFont()
         font.setPointSize(10)
         self.label_8.setFont(font)
         self.label_8.setObjectName("label_8")
+
         self.dispButton = QtWidgets.QPushButton(self.centralwidget)
         self.dispButton.setGeometry(QtCore.QRect(1210, 620, 131, 28))
         self.dispButton.setEnabled(False)
         self.dispButton.setObjectName("dispButton")
+
         self.huffButton = QtWidgets.QPushButton(self.centralwidget)
         self.huffButton.setGeometry(QtCore.QRect(1042, 620, 141, 28))
         self.huffButton.setObjectName("huffButton")
+
+        self.SourceSize = QtWidgets.QLabel(self.centralwidget)
+        self.SourceSize.setGeometry(QtCore.QRect(20, 530, 171, 31))
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.SourceSize.setFont(font)
+        self.SourceSize.setObjectName("SourceSize")
+
+        self.decodedSize = QtWidgets.QLabel(self.centralwidget)
+        self.decodedSize.setGeometry(QtCore.QRect(1170, 530, 181, 31))
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.decodedSize.setFont(font)
+        self.decodedSize.setObjectName("decodedSize")
+
+        self.label_9 = QtWidgets.QLabel(self.centralwidget)
+        self.label_9.setGeometry(QtCore.QRect(20, 170, 131, 16))
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.label_9.setFont(font)
+        self.label_9.setObjectName("label_9")
+
+        self.label_12 = QtWidgets.QLabel(self.centralwidget)
+        self.label_12.setGeometry(QtCore.QRect(730, 170, 131, 16))
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.label_12.setFont(font)
+        self.label_12.setObjectName("label_12")
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1378, 26))
@@ -204,6 +242,10 @@ class Ui_MainWindow(object):
         self.label_8.setText(_translate("MainWindow", "Encoded file Viewer"))
         self.dispButton.setText(_translate("MainWindow", "Display Encoded File"))
         self.huffButton.setText(_translate("MainWindow", "Display Huffman Table"))
+        self.SourceSize.setText(_translate("MainWindow", "File Size :"))
+        self.decodedSize.setText(_translate("MainWindow", "File Size :"))
+        self.label_9.setText(_translate("MainWindow", "Source"))
+        self.label_12.setText(_translate("MainWindow", "Compressed"))
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 

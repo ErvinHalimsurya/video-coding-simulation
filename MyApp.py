@@ -1,12 +1,13 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QObject, pyqtSlot, QUrl
-from utility.mainwindow import Ui_MainWindow
 from PyQt5.QtWidgets import QStyle
+import os
 import cv2
 import sys
 import threading
 import numpy as np
+from utility.mainwindow import Ui_MainWindow
 from utility.model import Model
 from utility.encodelib import encode
 from utility.decodelib import decode, getDimension
@@ -18,7 +19,6 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         self.setupUi(self)
         self.model = Model()
 
- 
         self.huffButton.clicked.connect(self.displayHuff)
         
         self.browseButton1.clicked.connect(self.browseSourceSlot)
@@ -94,12 +94,16 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def Decode(self):
-        filename = self.model.getDestPath()
+        if self.model.getDestPath() ==None or self.model.getHuffPath == None:
+            self.debugPrint("Determine Source to be Decoded")
+            return
+        sourceFile = self.model.getDestPath()
+        tablePath = self.model.getHuffPath()
         outputFolder = self.model.getDecodedFolder()
         name = self.decodedName.text()
         outputPath = self.model.getDecodedPath()
-        tablePath = self.model.getHuffPath()
-        if self.model.isValid(filename) or self.model.isValid(tablePath):
+        
+        if self.model.isValid(sourceFile) or self.model.isValid(tablePath):
             if outputFolder==None:
                 self.debugPrint("Determine the output video folder first")
             elif name=="":
@@ -107,15 +111,16 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             else:
                 self.decodeButton.setEnabled(False)
                 self.debugPrint("Decoding..........")
-                #Lanjut kode encode gan
+    
                 counter=1
                 frames = []
                 idx=0
-                height,width,frame_num = getDimension(filename,tablePath,idx)
+                height,width,frame_num = getDimension(sourceFile,tablePath,idx)
                 self.debugPrint(height+" "+width+" "+frame_num)
                 idx=0
+
                 for i in range (int(frame_num)):
-                    frame,idx=decode(filename,tablePath,idx)
+                    frame,idx=decode(sourceFile,tablePath,idx)
                     self.debugPrint(str(idx))
                     self.debugPrint(frame_num)
                     frames.append(frame)
@@ -130,6 +135,9 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                     frame = frame[0, :, :]
                     out.write(frame)
                 self.decodeButton.setEnabled(True)
+                size = os.path.getsize(outputPath)
+                size = round((size/1024),2)
+                self.decodedSize.setText('File Size: '+ str(size) + ' KB')
         else:
             self.debugPrint("Compressed file or table that is about to be decoded is invalid!")
     
@@ -240,6 +248,10 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.mediaPlayer1.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
             self.playButton1.setEnabled(True)
             self.sourceInput.setText(fileName)
+            size = os.path.getsize(self.model.getFileName())
+            size = round((size/1024),2)
+            self.SourceSize.setText('File Size: '+ str(size) + ' KB')
+            
         
     # Buat nyari folder yang mau di bikinin hasil encodednya. Penamaan variabel agak ngaco
     @QtCore.pyqtSlot()
@@ -250,6 +262,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.debugPrint( "setting Encoding Folder : " + foldName )
             self.model.setDestFolder( foldName ) #Bikin folder + outputname
             self.DestInput.setText( self.model.getDestFolder())
+            # self.sourceSize.setText()
 
     # Return nama output encoded. Penamaan variabel agak ngaco biarin lah ahahahaha
     @QtCore.pyqtSlot()
@@ -272,7 +285,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.debugPrint( "setting Destination Folder : " + foldName )
             self.model.setDecodedFolder( foldName ) #Bikin folder + outputname
             self.decodedPathInput.setText( self.model.getDecodedFolder())
-            #self.sourceInput.setText( self.model.getFileName())
+            
     
     @QtCore.pyqtSlot()
     def returnDecNameSlot(self):
@@ -281,7 +294,13 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         self.model.setDecodedPath(name)
         fileName = self.model.getDecodedPath()
         self.playButton2.setEnabled(True)
-        self.decodedName.setText( fileName )
+        self.decodedName.setText(fileName)
+        if self.model.isValid(fileName):
+            size = os.path.getsize(fileName)
+            size = round((size/1024),2)
+            self.decodedSize.setText('File Size: '+ str(size) + ' KB')
+        else:
+            self.decodedSize.setText('File Size: Not yet created')
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
