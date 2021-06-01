@@ -16,12 +16,11 @@ class JPEGFileReader:
     RUN_LENGTH_BITS = 4
     SIZE_BITS = 4
 
-    def __init__(self, filepath,tablepath,index):
-        with open(filepath, 'rb') as file:
-            self.codes = bitarray()
-            self.codes.fromfile(file)
-        self.__table = open(tablepath,'r')
-        self.currentIndex = index
+    def __init__(self, bytes,table):
+        self.codes = bitarray()
+        self.codes.frombytes(bytes)
+        self.__table = table
+        self.currentIndex = 0
 
     def read_int(self, size):
         if size == 0:
@@ -45,8 +44,8 @@ class JPEGFileReader:
             return util.ba2int(bin_num) * -1
     
     def imagesize(self):
-        cols,rows,frame_num = self.__table.readline().replace('\n','').split(',')
-        return cols,rows,frame_num
+        cols,rows,frame_num,fps = self.__table.readline().replace('\n','').split(',')
+        return cols,rows,frame_num,fps
 
     def read_dc_table(self):
         table = dict()
@@ -97,13 +96,11 @@ class JPEGFileReader:
 
     def __int2(self, bin_num):
         return int(bin_num, 2)
-    def getcurrentindex(self):
-        return self.currentIndex
     
-def read_image_file(filepath,tablepath,indexnow):
-    reader = JPEGFileReader(filepath,tablepath,indexnow)
+def read_image_file(bytes,tablepath):
+    reader = JPEGFileReader(bytes,tablepath)
     tables = dict()
-    rows,cols,frame_num = reader.imagesize()
+    rows,cols,frame_num,fps = reader.imagesize()
     for table_name in ['dc_y', 'ac_y', 'dc_c', 'ac_c']:
         if 'dc' in table_name:
             tables[table_name] = reader.read_dc_table()
@@ -148,7 +145,7 @@ def read_image_file(filepath,tablepath,indexnow):
                     ac[block_index, cells_count, component] = value
                     cells_count += 1
 
-    return rows,cols,frame_num,dc, ac, tables, blocks_count,reader.getcurrentindex()
+    return rows,cols,frame_num,dc, ac, tables, blocks_count
 
 
 def zigzag_to_block(block):
@@ -177,20 +174,16 @@ def dequantize(block, component):
 def idct_2d(image):
     return fftpack.idct(fftpack.idct(image.T, norm='ortho').T, norm='ortho')
 
-def getDimension(filepath,tablepath,indexnow):
-    reader = JPEGFileReader(filepath,tablepath,indexnow)
-    rows,cols,frame_num = reader.imagesize()
+def getDimension(tablepath):
+    with open(tablepath,'r') as file:
+        rows,cols,frame_num,fps = file.readline().replace('\n','').split(',')
+    return rows,cols,frame_num,fps
 
-    return rows,cols,frame_num
-
-def decode(destPath,tablePath,indexnow):
-    rows,cols,frame_num, dc, ac, tables, blocks_count,index = read_image_file(destPath,tablePath,indexnow)
+def decode(bytes,table):
+    rows,cols,frame_num, dc, ac, tables, blocks_count= read_image_file(bytes,table)
     block_side = 8
     rows = int(rows)
     cols = int(cols)
-    print(rows)
-    print(cols)
-
     npmat = np.empty((cols, rows, 3), dtype=np.uint8)
     cols = int(rows/8)
     block_index = 0
@@ -210,4 +203,4 @@ def decode(destPath,tablePath,indexnow):
             #print(block)
             npmat[i:i+8, j:j+8, c] = block + 128
 
-    return npmat,index
+    return npmat

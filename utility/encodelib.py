@@ -79,7 +79,7 @@ def run_length_encode(arr):
 
 def write_table(filepath,tables,filesize):
     try:
-        f = open(filepath, 'a')
+        f = open(filepath, 'at')
     except FileNotFoundError as e:
         raise FileNotFoundError(
                 "No such directory: {}".format(
@@ -102,6 +102,7 @@ def write_table(filepath,tables,filesize):
     f.close()
 
 def write_to_file(filepath, dc, ac, blocks_count,tables):
+    codeLength = 0
     x = bitarray()
     try:
         f = open(filepath, 'ab')
@@ -110,7 +111,7 @@ def write_to_file(filepath, dc, ac, blocks_count,tables):
                 "No such directory: {}".format(
                     os.path.dirname(filepath))) from e
     # 32 bits for 'blocks_count'
-    f.write(uint_to_bitarray(blocks_count, 32).tobytes())
+    x+= uint_to_bitarray(blocks_count, 32)
 
     for b in range(blocks_count):
         for c in range(3):
@@ -124,12 +125,16 @@ def write_to_file(filepath, dc, ac, blocks_count,tables):
             
             for i in range(len(symbols)):
                 x += bitarray(ac_table[tuple(symbols[i])]) + values[i]
-    x.tofile(f)
+    
+    x = x.tobytes()
+    codeLength = len(x)
+    f.write(x)
     f.close()
+    return codeLength
     
 
 
-def encode(frame,frame_num,tablepath,destpath):
+def encode(frame,frame_num,fps,tablepath,destpath):
     npmat = frame
     rows, cols = npmat.shape[0], npmat.shape[1]
     rowcount,a = divmod(rows,8)
@@ -177,8 +182,9 @@ def encode(frame,frame_num,tablepath,destpath):
             'ac_y': H_AC_Y.value_to_bitstring_table(),
             'dc_c': H_DC_C.value_to_bitstring_table(),
             'ac_c': H_AC_C.value_to_bitstring_table()}
-    write_table(tablepath, tables,(str(cols) + "," + str(rows) + "," + str(int(frame_num))))
-    write_to_file(destpath, dc, ac, blocks_count,tables)
+    write_table( tablepath, tables,( str(cols) + "," + str(rows) + "," + str(int(frame_num))+"," +str(int(fps)) ) )
+    Length = write_to_file(destpath, dc, ac, blocks_count,tables)
+    return Length
         
     
 

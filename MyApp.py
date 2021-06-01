@@ -1,7 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QObject, pyqtSlot, QUrl
-from PyQt5.QtWidgets import QStyle
+from PyQt5.QtWidgets import QStyle,QDialog,QApplication
 import os
 import cv2
 import sys
@@ -33,6 +33,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         self.decodedName.returnPressed.connect(self.returnDecNameSlot)
         
         self.dispButton.clicked.connect(self.displayFile)
+        self.customButton.clicked.connect(self.dialogbox)
 
 
         self.mediaPlayer1 =  QMediaPlayer(None, QMediaPlayer.VideoSurface)
@@ -44,6 +45,9 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 
         self.encodeButton.clicked.connect(lambda: self.launchThread(1))
         self.decodeButton.clicked.connect(lambda: self.launchThread(2))
+
+        self.customButton.clicked.connect(self.dialogbox) 
+        self.codeLength = []
 
     @QtCore.pyqtSlot()
     def launchThread(self,option):
@@ -72,23 +76,30 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             elif name=="":
                 self.debugPrint("Determine the output name first")
             else:
-                self.encodeButton.setEnabled(False)
-                self.debugPrint("Encoding..........")
-                # Kode encoding
-                cap = cv2.VideoCapture(fileName) #Read the video File
-                frames,frame_num = self.readVideo(cap)
+                try:
+                    self.encodeButton.setEnabled(False)
+                    
+                    # Kode encoding
+                    cap = cv2.VideoCapture(fileName) #Read the video File
+                    frames,frame_num,fps = self.readVideo(cap)
+                    self.debugPrint("Encoding..........")
 
-                counter=1
-                tablePath = self.model.getHuffPath()
-                encodePath = self.model.getDestPath()
-                f = open(encodePath, 'wb')
-                f.close()
+                    counter=1
+                    tablePath = self.model.getHuffPath()
+                    encodePath = self.model.getDestPath()
+                    f = open(encodePath, 'wb')
+                    f.close()
 
-                for frame in frames :
-                    encode(frame,frame_num,tablePath,encodePath)
-                    self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
-                    counter=counter+1
-                self.encodeButton.setEnabled(True)
+                    for frame in frames :
+                        self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath))
+                        self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
+                        counter=counter+1
+                    self.encodeButton.setEnabled(True)
+                    self.debugPrint("Done Encoding")
+                except:
+                    self.debugPrint("An error happened")
+                    self.encodeButton.setEnabled(True)
+        
         else:
             self.debugPrint("Source file invalid!")
 
@@ -109,35 +120,48 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             elif name=="":
                 self.debugPrint("Determine the output video name first")
             else:
-                self.decodeButton.setEnabled(False)
-                self.debugPrint("Decoding..........")
-    
-                counter=1
-                frames = []
-                idx=0
-                height,width,frame_num = getDimension(sourceFile,tablePath,idx)
-                self.debugPrint(height+" "+width+" "+frame_num)
-                idx=0
+                try:
+                    self.decodeButton.setEnabled(False)
+                    counter=1
+                    frames = []
+                    width,height,frame_num,fps = getDimension(tablePath)
+                    width = int(width)
+                    height = int(height)
+                    self.debugPrint("Width : %d" % (width))
+                    self.debugPrint("Height : %d" % (height))
+                    
+                    self.debugPrint("Decoding..........")
+                    i = 0
+                    with open(sourceFile,'rb') as file, open(tablePath,'r') as table:
+                        while(i<int(frame_num)):
+                            frame=decode(file.read(self.codeLength[i]),table)                        
+                            frames.append(frame)
+                            self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
+                            counter = counter+1
+                            i +=1
+                    
+                    codec_id = "mp4v"
+                    fourcc = cv2.VideoWriter_fourcc(*codec_id)
+                    out = cv2.VideoWriter(outputPath, fourcc, int(fps), (width, height)) # bikin fungsi ambil row, cols
+                    # video = np.array(frames)
+                    # video = np.stack(video, axis=0) # dimensions (T, H, W, C)
+                    video=frames
+                    # np.split(video, frame_num, axis=0)
 
-                for i in range (int(frame_num)):
-                    frame,idx=decode(sourceFile,tablePath,idx)
-                    self.debugPrint(str(idx))
-                    self.debugPrint(frame_num)
-                    frames.append(frame)
-                    self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
-                    counter = counter+1
-                
-                codec_id = "mp4v"
-                fourcc = cv2.VideoWriter_fourcc(*codec_id)
-                out = cv2.VideoWriter(outputPath, fourcc, 20, (width, height)) # bikin fungsi ambil row, cols
-                video = np.stack(frames, axis=0) # dimensions (T, H, W, C)
-                for frame in np.split(video, frame_num, axis=0): #Jumlah frame?
-                    frame = frame[0, :, :]
-                    out.write(frame)
-                self.decodeButton.setEnabled(True)
-                size = os.path.getsize(outputPath)
-                size = round((size/1024),2)
-                self.decodedSize.setText('File Size: '+ str(size) + ' KB')
+                    for frame in video: #Jumlah frame?
+                        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_YCR_CB2BGR)
+                        #frame = frame[0, :, :]
+                        out.write(frame_bgr)
+                    
+                    self.decodeButton.setEnabled(True)
+                    self.debugPrint("Done Decoding")
+                    size = os.path.getsize(outputPath)
+                    size = round((size/1024),2)
+                    self.decodedSize.setText('File Size: '+ str(size) + ' KB')
+                    
+                except:
+                    self.debugPrint("An error happened")
+                    self.decodeButton.setEnabled(True)
         else:
             self.debugPrint("Compressed file or table that is about to be decoded is invalid!")
     
@@ -171,12 +195,17 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             ret,frame = cap.read() #akan dibaca frame per frame, var frame akan menyimpan nilai pembacaanya 
             if not ret:
                 frame_num = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                width =int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 self.debugPrint("Reading Video Done. Total Frame : %d" % (frame_num))
+                self.debugPrint("Width : %d" % (width))
+                self.debugPrint("Height : %d" % (height))
                 break
             frame_ycbcr = cv2.cvtColor(frame, cv2.COLOR_BGR2YCR_CB)
             #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             frames.append(frame_ycbcr)
-        return frames,frame_num
+        return frames,frame_num,fps
 
     
 
@@ -274,7 +303,6 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         self.dispButton.setEnabled(True)
         self.debugPrint("Entered Encoded File Name !")
         
-            
     
     # Pilih folder video decoded mau dibikin dimana
     @QtCore.pyqtSlot()
@@ -301,6 +329,41 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.decodedSize.setText('File Size: '+ str(size) + ' KB')
         else:
             self.decodedSize.setText('File Size: Not yet created')
+
+    def dialogbox(self):
+        self.myDialog = MyDialog()
+        self.myDialog.show()
+
+
+class MyDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
+        self.ui.dialogButton.clicked.connect(self.returnTable)
+ 
+    def returnTable(self):
+        pass
+
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(780, 780)
+    
+        self.dialogButton = QtWidgets.QPushButton(Dialog)
+        self.dialogButton.setGeometry(QtCore.QRect(700,700,40,30))
+        self.dialogButton.setObjectName("OkButton")
+        self.table = QtWidgets.QTableWidget(Dialog)
+        self.table.setGeometry(QtCore.QRect(70,70,400,300))
+
+        
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        Dialog.setWindowTitle("Quantization Table")
+        self.dialogButton.setText("OK")
+        
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
