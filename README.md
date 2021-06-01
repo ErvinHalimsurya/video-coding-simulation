@@ -1,4 +1,4 @@
-# video-compression-app
+# video-encoding-app
 Ongoing project  
 Made by :  
 Ervin Halimsurya  
