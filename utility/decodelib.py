@@ -96,7 +96,63 @@ class JPEGFileReader:
 
     def __int2(self, bin_num):
         return int(bin_num, 2)
-    
+
+def loadcustomTable(method,table):
+    lum = np.array([[2, 2, 2, 2, 3, 4, 5, 6],
+                      [2, 2, 2, 2, 3, 4, 5, 6],
+                      [2, 2, 2, 2, 4, 5, 7, 9],
+                      [2, 2, 2, 4, 5, 7, 9, 12],
+                      [3, 3, 4, 5, 8, 10, 12, 12],
+                      [4, 4, 5, 7, 10, 12, 12, 12],
+                      [5, 5, 7, 9, 12, 12, 12, 12],
+                      [6, 6, 9, 12, 12, 12, 12, 12]])
+    chrom = np.array([[3, 3, 5, 9, 13, 15, 15, 15],
+                      [3, 4, 6, 11, 14, 12, 12, 12],
+                      [5, 6, 9, 14, 12, 12, 12, 12],
+                      [9, 11, 14, 12, 12, 12, 12, 12],
+                      [13, 14, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12]])
+    if method == 4:
+       return lum,table
+    elif method ==5:
+        return chrom,table
+    elif method ==6:
+        return table,lum
+    elif method ==7:
+        return table,chrom
+    elif method ==8:
+        return table,table
+
+
+def loadquantize(method):
+    lum = np.array([[2, 2, 2, 2, 3, 4, 5, 6],
+                      [2, 2, 2, 2, 3, 4, 5, 6],
+                      [2, 2, 2, 2, 4, 5, 7, 9],
+                      [2, 2, 2, 4, 5, 7, 9, 12],
+                      [3, 3, 4, 5, 8, 10, 12, 12],
+                      [4, 4, 5, 7, 10, 12, 12, 12],
+                      [5, 5, 7, 9, 12, 12, 12, 12],
+                      [6, 6, 9, 12, 12, 12, 12, 12]])
+    chrom = np.array([[3, 3, 5, 9, 13, 15, 15, 15],
+                      [3, 4, 6, 11, 14, 12, 12, 12],
+                      [5, 6, 9, 14, 12, 12, 12, 12],
+                      [9, 11, 14, 12, 12, 12, 12, 12],
+                      [13, 14, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12]])
+    if method == 0:
+       return chrom,chrom
+    elif method ==1:
+        return lum,chrom
+    elif method ==2:
+        return chrom,lum
+    elif method ==3:
+        return lum,lum
+
+
 def read_image_file(bytes,tablepath):
     reader = JPEGFileReader(bytes,tablepath)
     tables = dict()
@@ -163,13 +219,6 @@ def zigzag_to_block(block):
             b[i,j] = block[a[i,j]]
             
     return b
-    
-
-
-def dequantize(block, component):
-    q = load_quantization_table(component)
-    return block * q
-
 
 def idct_2d(image):
     return fftpack.idct(fftpack.idct(image.T, norm='ortho').T, norm='ortho')
@@ -185,7 +234,7 @@ def getDimension(tablepath):
         rows,cols,frame_num,fps = file.readline().replace('\n','').split(',')
     return rows,cols,frame_num,fps
 
-def decode(bytes,table,type = 0):
+def decode(bytes,table,type, quantizationMethod, custom = None):
     rows,cols,frame_num, dc, ac, tables, blocks_count= read_image_file(bytes,table)
     block_side = 8
     rows = int(rows)
@@ -193,6 +242,10 @@ def decode(bytes,table,type = 0):
     npmat = np.empty((cols, rows, 3), dtype=np.uint8)
     cols = int(rows/8)
     block_index = 0
+    if quantizationMethod <=3:
+        y,cbcr = loadquantize(quantizationMethod)
+    else:
+        y,cbcr = loadcustomTable(quantizationMethod,table)  
     # j antara 1-160
     # i antara 1-90
     for block_index in range(blocks_count):
@@ -204,13 +257,16 @@ def decode(bytes,table,type = 0):
         for c in range(3):
             zigzag = [dc[block_index, c]] + list(ac[block_index, :, c])
             quant_matrix = zigzag_to_block(zigzag)
-            dct_matrix = dequantize(quant_matrix, 'lum' if c == 0 else 'chrom')
+            if c == 0:
+                matrix = quant_matrix * y
+            else:
+                matrix = quant_matrix * cbcr
             if type ==0:
-                block = idct_2d(dct_matrix)
+                block = idct_2d(matrix)
             if type ==1:
-                block = idft_2d(dct_matrix)
+                block = idft_2d(matrix)
             if type ==2:
-                block = idst_2d(dct_matrix)
+                block = idst_2d(matrix)
             #print(block)
             npmat[i:i+8, j:j+8, c] = block + 128
 

@@ -6,8 +6,7 @@ from scipy import fftpack
 from .huff import HuffmanTree
 from bitarray import bitarray
 
-
-def quantizelum(block):
+def loadcustomTable(method,table):
     lum = np.array([[2, 2, 2, 2, 3, 4, 5, 6],
                       [2, 2, 2, 2, 3, 4, 5, 6],
                       [2, 2, 2, 2, 4, 5, 7, 9],
@@ -16,8 +15,6 @@ def quantizelum(block):
                       [4, 4, 5, 7, 10, 12, 12, 12],
                       [5, 5, 7, 9, 12, 12, 12, 12],
                       [6, 6, 9, 12, 12, 12, 12, 12]])
-    return (np.divide(block,lum)).round().astype(np.int32)
-def quantizechrom(block):
     chrom = np.array([[3, 3, 5, 9, 13, 15, 15, 15],
                       [3, 4, 6, 11, 14, 12, 12, 12],
                       [5, 6, 9, 14, 12, 12, 12, 12],
@@ -26,7 +23,45 @@ def quantizechrom(block):
                       [15, 12, 12, 12, 12, 12, 12, 12],
                       [15, 12, 12, 12, 12, 12, 12, 12],
                       [15, 12, 12, 12, 12, 12, 12, 12]])
-    return (np.divide(block,chrom)).round().astype(np.int32)
+    if method == 4:
+       return lum,table
+    elif method ==5:
+        return chrom,table
+    elif method ==6:
+        return table,lum
+    elif method ==7:
+        return table,chrom
+    elif method ==8:
+        return table,table
+
+
+def loadquantize(method):
+    lum = np.array([[2, 2, 2, 2, 3, 4, 5, 6],
+                      [2, 2, 2, 2, 3, 4, 5, 6],
+                      [2, 2, 2, 2, 4, 5, 7, 9],
+                      [2, 2, 2, 4, 5, 7, 9, 12],
+                      [3, 3, 4, 5, 8, 10, 12, 12],
+                      [4, 4, 5, 7, 10, 12, 12, 12],
+                      [5, 5, 7, 9, 12, 12, 12, 12],
+                      [6, 6, 9, 12, 12, 12, 12, 12]])
+    chrom = np.array([[3, 3, 5, 9, 13, 15, 15, 15],
+                      [3, 4, 6, 11, 14, 12, 12, 12],
+                      [5, 6, 9, 14, 12, 12, 12, 12],
+                      [9, 11, 14, 12, 12, 12, 12, 12],
+                      [13, 14, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12],
+                      [15, 12, 12, 12, 12, 12, 12, 12]])
+    if method == 0:
+       return chrom,chrom
+    elif method ==1:
+        return lum,chrom
+    elif method ==2:
+        return chrom,lum
+    elif method ==3:
+        return lum,lum
+
+
 
 def block_to_zigzag(block):
     b = np.zeros(64,dtype = int)
@@ -139,7 +174,11 @@ def write_to_file(filepath, dc, ac, blocks_count,tables):
     
 
 
-def encode(frame,frame_num,fps,tablepath,destpath,type = 0):
+def encode(frame,frame_num,fps,tablepath,destpath,type,quantizationMethod,table = None):
+    if quantizationMethod <=3:
+        y,cbcr = loadquantize(quantizationMethod)
+    else:
+        y,cbcr = loadcustomTable(quantizationMethod,table)  
     npmat = frame
     rows, cols = npmat.shape[0], npmat.shape[1]
     rowcount,a = divmod(rows,8)
@@ -180,9 +219,9 @@ def encode(frame,frame_num,fps,tablepath,destpath,type = 0):
                 
                 # Quantize
                 if k == 0:                                             # Maybe put if above here to determine quantize mode
-                    quant_matrix = quantizelum(matrix)
+                    quant_matrix = (np.divide(matrix,y)).round().astype(np.int32)
                 else:
-                    quant_matrix = quantizechrom(matrix)
+                    quant_matrix = (np.divide(matrix,cbcr)).round().astype(np.int32)
                 zz = block_to_zigzag(quant_matrix)
                 dc[block_index, k] = zz[0]
                 ac[block_index, :, k] = zz[1:]
