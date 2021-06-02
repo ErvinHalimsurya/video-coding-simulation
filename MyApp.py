@@ -45,6 +45,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 
         self.encodeButton.clicked.connect(lambda: self.launchThread(1))
         self.decodeButton.clicked.connect(lambda: self.launchThread(2))
+        self.helpButton.clicked.connect(self.displayHelpWindow)
 
         self.customButton.clicked.connect(self.dialogbox) 
         self.codeLength = []
@@ -75,7 +76,9 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.encodeButton.setEnabled(False)
             # Kode encoding
             cap = cv2.VideoCapture(fileName) #Read the video File
-            frames,frame_num,fps = self.readVideo(cap)
+            frames,frame_num,fps,width,height = self.readVideo(cap)
+            orisize = ((int(width)*int(height)*int(frame_num)*16)/8)/1024
+            self.oriSize.setText("Original Video Size : %.2f KB" %(orisize))
             self.debugPrint("Encoding..........")
             
             if (self.FFTRadio.isChecked()):
@@ -84,23 +87,6 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                 self.k=0
             elif (self.DSTRadio.isChecked()):
                 self.k=2
-            
-            # if (self.yChromRadio.isChecked()):
-            #     self.y=0
-            # elif (self.yLumRadio.isChecked()):
-            #     self.y=1
-            # else:
-            #     self.y=2
-
-            # if (self.cChromRadio.isChecked()):
-            #     self.cbcr=0
-            #     self.customQTable = None
-            # elif (self.cLumRadio.isChecked()):
-            #     self.cbcr=1
-            #     self.customQTable = None
-            # else:
-            #     self.cbcr=2
-
             if (self.yChromRadio.isChecked()) and (self.cChromRadio.isChecked()): #Y dan CbCr pake chrom
                     self.y=0
                     self.customQTable = None
@@ -136,6 +122,9 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                 counter=counter+1
             self.encodeButton.setEnabled(True)
             self.debugPrint("Done Encoding")
+            size = os.path.getsize(outputPath)
+            size = round((size/1024),2)
+            self.encSize.setText('File Size: '+ str(size) + ' KB')
                     
         
         else:
@@ -234,7 +223,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             frame_ycbcr = cv2.cvtColor(frame, cv2.COLOR_BGR2YCR_CB)
             #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             frames.append(frame_ycbcr)
-        return frames,frame_num,fps
+        return frames,frame_num,fps,width,height
 
     
 
@@ -334,6 +323,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         fileName = self.model.getDestPath()
         self.outputName.setText( fileName )
         self.dispButton.setEnabled(True)
+        self.huffButton.setEnabled(True)
         self.debugPrint("Entered Encoded File Name !")
         
     
@@ -362,6 +352,11 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.decodedSize.setText('File Size: '+ str(size) + ' KB')
         else:
             self.decodedSize.setText('File Size: Not yet created')
+
+    def displayHelpWindow(self):
+        pass
+        # self.myHelp = MyHelp()
+        # self.myHelp.show()
 
     def dialogbox(self):
         self.myDialog = MyDialog()
@@ -468,7 +463,11 @@ class MyDialog(QDialog,Ui_Form):
     def __init__(self,parent=None):
         super(MyDialog, self).__init__(parent)
         self.setupUi(self)
-        
+
+# class MyHelp(QDialog,Ui_Help):
+#     def __init__(self,parent=None):
+#         super(MyHelp, self).__init__(parent)
+#         self.setupUi(self)
  
     
 

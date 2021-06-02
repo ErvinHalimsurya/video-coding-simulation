@@ -23,7 +23,6 @@ class Ui_MainWindow(object):
         self.encodeButton = QtWidgets.QPushButton(self.centralwidget)
         self.encodeButton.setGeometry(QtCore.QRect(540, 560, 141, 71))
         self.encodeButton.setFlat(False)
-        self.encodeButton.setEnabled(True)
         self.encodeButton.setObjectName("encodeButton")
 
         self.videoScreen1 = QVideoWidget(self.centralwidget)
@@ -133,7 +132,6 @@ class Ui_MainWindow(object):
 
         self.playButton1 = QtWidgets.QPushButton(self.centralwidget)
         self.playButton1.setGeometry(QtCore.QRect(290, 530, 93, 28))
-        self.playButton1.setEnabled(False)
         self.playButton1.setFixedHeight(24)
         self.playButton1.setIconSize(btnSize)
         self.playButton1.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
@@ -141,7 +139,6 @@ class Ui_MainWindow(object):
         
         self.playButton2 = QtWidgets.QPushButton(self.centralwidget)
         self.playButton2.setGeometry(QtCore.QRect(1010, 530, 93, 28))
-        self.playButton2.setEnabled(False)
         self.playButton2.setFixedHeight(24)
         self.playButton2.setIconSize(btnSize)
         self.playButton2.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
@@ -150,7 +147,7 @@ class Ui_MainWindow(object):
         self.decodeButton = QtWidgets.QPushButton(self.centralwidget)
         self.decodeButton.setGeometry(QtCore.QRect(720, 560, 141, 71))
         self.decodeButton.setFlat(False)
-        self.decodeButton.setEnabled(True)
+        
         self.decodeButton.setObjectName("decodeButton")
 
         self.textBrowser_2 = QtWidgets.QTextBrowser(self.centralwidget)
@@ -173,7 +170,6 @@ class Ui_MainWindow(object):
 
         self.dispButton = QtWidgets.QPushButton(self.centralwidget)
         self.dispButton.setGeometry(QtCore.QRect(1210, 620, 131, 28))
-        self.dispButton.setEnabled(False)
         self.dispButton.setObjectName("dispButton")
 
         self.huffButton = QtWidgets.QPushButton(self.centralwidget)
@@ -188,7 +184,7 @@ class Ui_MainWindow(object):
         self.SourceSize.setObjectName("SourceSize")
 
         self.decodedSize = QtWidgets.QLabel(self.centralwidget)
-        self.decodedSize.setGeometry(QtCore.QRect(1170, 530, 181, 31))
+        self.decodedSize.setGeometry(QtCore.QRect(1150, 530, 201, 31))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.decodedSize.setFont(font)
@@ -286,6 +282,23 @@ class Ui_MainWindow(object):
         self.customButton.setGeometry(QtCore.QRect(740, 70, 101, 51))
         self.customButton.setObjectName("customButton")
 
+        self.oriSize = QtWidgets.QLabel(self.centralwidget)
+        self.oriSize.setGeometry(QtCore.QRect(20, 570, 311, 31))
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.oriSize.setFont(font)
+        self.oriSize.setObjectName("oriSize")
+        self.encSize = QtWidgets.QLabel(self.centralwidget)
+        self.encSize.setGeometry(QtCore.QRect(1150, 570, 201, 31))
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.encSize.setFont(font)
+        self.encSize.setObjectName("encSize")
+
+        self.helpButton = QtWidgets.QPushButton(self.centralwidget)
+        self.helpButton.setGeometry(QtCore.QRect(10, 110, 93, 28))
+        self.helpButton.setObjectName("helpButton")
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1378, 26))
@@ -299,6 +312,12 @@ class Ui_MainWindow(object):
         self.DCTRadio.setChecked(True)
         self.yLumRadio.setChecked(True)
         self.cChromRadio.setChecked(True)
+        self.dispButton.setEnabled(False)
+        self.huffButton.setEnabled(False)
+        self.playButton1.setEnabled(False)
+        self.playButton2.setEnabled(False)
+        self.decodeButton.setEnabled(True)
+        self.encodeButton.setEnabled(True)
 
 
         self.retranslateUi(MainWindow)
@@ -326,13 +345,13 @@ class Ui_MainWindow(object):
         self.label_8.setText(_translate("MainWindow", "Encoded file Viewer"))
         self.dispButton.setText(_translate("MainWindow", "Display Encoded File"))
         self.huffButton.setText(_translate("MainWindow", "Display Huffman Table"))
-        self.SourceSize.setText(_translate("MainWindow", "File Size :"))
-        self.decodedSize.setText(_translate("MainWindow", "File Size :"))
+        self.SourceSize.setText(_translate("MainWindow", "Video Size :"))
+        self.decodedSize.setText(_translate("MainWindow", "Video Size :"))
         self.label_9.setText(_translate("MainWindow", "Source"))
-        self.label_12.setText(_translate("MainWindow", "Compressed"))
+        self.label_12.setText(_translate("MainWindow", "Decoded"))
         self.label_13.setText(_translate("MainWindow", "Transform Method"))
         self.DCTRadio.setText(_translate("MainWindow", "DCT"))
-        self.FFTRadio.setText(_translate("MainWindow", "FFT"))
+        self.FFTRadio.setText(_translate("MainWindow", "DFT"))
         self.label_16.setText(_translate("MainWindow", "Quantization Method"))
         self.label_14.setText(_translate("MainWindow", "Y Component"))
         self.yChromRadio.setText(_translate("MainWindow", "Chrominance"))
@@ -343,6 +362,9 @@ class Ui_MainWindow(object):
         self.customButton.setText(_translate("MainWindow", "Custom\n"
 "Quantization"))
         self.DSTRadio.setText(_translate("MainWindow", "DST"))
+        self.oriSize.setText(_translate("MainWindow", "Original Video Size :"))
+        self.encSize.setText(_translate("MainWindow", "Encoded File Size :"))
+        self.helpButton.setText(_translate("MainWindow", "Help"))
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 
