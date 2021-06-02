@@ -87,21 +87,21 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                     self.debugPrint("Encoding..........")
                     
                     if (self.FFTRadio.isChecked()):
-                        pass
+                        self.k=1
                     elif (self.DCTRadio.isChecked()):
-                        k=1
+                        pass
                     elif (self.DSTRadio.isChecked()):
-                        k=2
+                        self.k=2
 
                     if (self.yChromRadio.isChecked()):
                         pass
                     elif (self.yLumRadio.isChecked()):
-                        y=1
+                        self.y=1
                     
                     if (self.cChromRadio.isChecked()):
                         pass
                     elif (self.cLumradio.isChecked()):
-                        c=1
+                        self.cbcr=1
             
                     counter=1
                     tablePath = self.model.getHuffPath()
@@ -110,7 +110,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                     f.close()
 
                     for frame in frames :
-                        self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath,k))
+                        self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath,self.k))
                         self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
                         counter=counter+1
                     self.encodeButton.setEnabled(True)
@@ -153,7 +153,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                     i = 0
                     with open(sourceFile,'rb') as file, open(tablePath,'r') as table:
                         while(i<int(frame_num)):
-                            frame=decode(file.read(self.codeLength[i]),table)                        
+                            frame=decode(file.read(self.codeLength[i]),table,self.k)                        
                             frames.append(frame)
                             self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
                             counter = counter+1

@@ -174,12 +174,18 @@ def dequantize(block, component):
 def idct_2d(image):
     return fftpack.idct(fftpack.idct(image.T, norm='ortho').T, norm='ortho')
 
+def idst_2d(image):
+    return fftpack.idst(fftpack.idst(image.T, norm='ortho').T, norm='ortho')
+
+def idft_2d(image):
+    return fftpack.irfft(fftpack.irfft(image.T, axis=0),axis=1)
+
 def getDimension(tablepath):
     with open(tablepath,'r') as file:
         rows,cols,frame_num,fps = file.readline().replace('\n','').split(',')
     return rows,cols,frame_num,fps
 
-def decode(bytes,table):
+def decode(bytes,table,type = 0):
     rows,cols,frame_num, dc, ac, tables, blocks_count= read_image_file(bytes,table)
     block_side = 8
     rows = int(rows)
@@ -199,7 +205,12 @@ def decode(bytes,table):
             zigzag = [dc[block_index, c]] + list(ac[block_index, :, c])
             quant_matrix = zigzag_to_block(zigzag)
             dct_matrix = dequantize(quant_matrix, 'lum' if c == 0 else 'chrom')
-            block = idct_2d(dct_matrix)
+            if type ==0:
+                block = idct_2d(dct_matrix)
+            if type ==1:
+                block = idft_2d(dct_matrix)
+            if type ==2:
+                block = idst_2d(dct_matrix)
             #print(block)
             npmat[i:i+8, j:j+8, c] = block + 128
 

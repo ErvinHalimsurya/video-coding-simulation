@@ -45,7 +45,12 @@ def block_to_zigzag(block):
     return b
 
 def dct_2d(image):
-    return fftpack.dct(fftpack.dct(image.T, norm='ortho').T, norm='ortho')  #Maybe determine transform method here
+    return fftpack.dct(fftpack.dct(image.T, norm='ortho').T, norm='ortho')
+def dst_2d(image):
+    return fftpack.dst(fftpack.dst(image.T, norm='ortho').T, norm='ortho')
+
+def dft_2d(image):
+    return fftpack.rfft(fftpack.rfft(image.T, axis=0),axis=1)
 
 
 def run_length_encode(arr):
@@ -134,7 +139,7 @@ def write_to_file(filepath, dc, ac, blocks_count,tables):
     
 
 
-def encode(frame,frame_num,fps,tablepath,destpath):
+def encode(frame,frame_num,fps,tablepath,destpath,type = 0):
     npmat = frame
     rows, cols = npmat.shape[0], npmat.shape[1]
     rowcount,a = divmod(rows,8)
@@ -165,11 +170,19 @@ def encode(frame,frame_num,fps,tablepath,destpath):
                 except NameError:
                     block_index = 0
                 block = npmat[i:i+8, j:j+8, k] 
-                dct_matrix = dct_2d(block)
+                # Convert to Frequency Domain
+                if type==0:
+                    matrix = dct_2d(block)
+                elif type ==1:
+                    matrix = dft_2d(block)
+                elif type==2:
+                    matrix = dst_2d(block)
+                
+                # Quantize
                 if k == 0:                                             # Maybe put if above here to determine quantize mode
-                    quant_matrix = quantizelum(dct_matrix)
+                    quant_matrix = quantizelum(matrix)
                 else:
-                    quant_matrix = quantizechrom(dct_matrix)
+                    quant_matrix = quantizechrom(matrix)
                 zz = block_to_zigzag(quant_matrix)
                 dc[block_index, k] = zz[0]
                 ac[block_index, :, k] = zz[1:]
