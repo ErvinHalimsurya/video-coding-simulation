@@ -215,26 +215,29 @@ class Ui_MainWindow(object):
         self.label_16.setFont(font)
         self.label_16.setObjectName("label_16")
         self.widget = QtWidgets.QWidget(self.centralwidget)
-        self.widget.setGeometry(QtCore.QRect(280, 50, 127, 76))
+        self.widget.setGeometry(QtCore.QRect(281, 52, 125, 103))
         self.widget.setObjectName("widget")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.widget)
         self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
-        self.verticalLayout_5 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.label_13 = QtWidgets.QLabel(self.widget)
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_13.setFont(font)
         self.label_13.setObjectName("label_13")
-        self.verticalLayout_5.addWidget(self.label_13)
+        self.verticalLayout_6.addWidget(self.label_13)
+        self.verticalLayout_5 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.DCTRadio = QtWidgets.QRadioButton(self.widget)
         self.DCTRadio.setObjectName("DCTRadio")
         self.verticalLayout_5.addWidget(self.DCTRadio)
-        self.verticalLayout_6.addLayout(self.verticalLayout_5)
         self.FFTRadio = QtWidgets.QRadioButton(self.widget)
         self.FFTRadio.setObjectName("FFTRadio")
-        self.verticalLayout_6.addWidget(self.FFTRadio)
+        self.verticalLayout_5.addWidget(self.FFTRadio)
+        self.DSTradio = QtWidgets.QRadioButton(self.widget)
+        self.DSTradio.setObjectName("DSTradio")
+        self.verticalLayout_5.addWidget(self.DSTradio)
+        self.verticalLayout_6.addLayout(self.verticalLayout_5)
         self.widget1 = QtWidgets.QWidget(self.centralwidget)
         self.widget1.setGeometry(QtCore.QRect(500, 40, 231, 51))
         self.widget1.setObjectName("widget1")
@@ -293,7 +296,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         #Setting radio button
-        self.FFTRadio.setChecked(True)
+        self.DCTRadio.setChecked(True)
         self.yLumRadio.setChecked(True)
         self.cChromRadio.setChecked(True)
 
@@ -339,6 +342,7 @@ class Ui_MainWindow(object):
         self.cLumradio.setText(_translate("MainWindow", "Luminance"))
         self.customButton.setText(_translate("MainWindow", "Custom\n"
 "Quantization"))
+        self.DSTradio.setText(_translate("MainWindow", "DST"))
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 

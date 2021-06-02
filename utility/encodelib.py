@@ -45,7 +45,7 @@ def block_to_zigzag(block):
     return b
 
 def dct_2d(image):
-    return fftpack.dct(fftpack.dct(image.T, norm='ortho').T, norm='ortho')
+    return fftpack.dct(fftpack.dct(image.T, norm='ortho').T, norm='ortho')  #Maybe determine transform method here
 
 
 def run_length_encode(arr):
@@ -166,7 +166,7 @@ def encode(frame,frame_num,fps,tablepath,destpath):
                     block_index = 0
                 block = npmat[i:i+8, j:j+8, k] 
                 dct_matrix = dct_2d(block)
-                if k == 0:
+                if k == 0:                                             # Maybe put if above here to determine quantize mode
                     quant_matrix = quantizelum(dct_matrix)
                 else:
                     quant_matrix = quantizechrom(dct_matrix)

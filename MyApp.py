@@ -11,6 +11,7 @@ from utility.mainwindow import Ui_MainWindow
 from utility.model import Model
 from utility.encodelib import encode
 from utility.decodelib import decode, getDimension
+from utility.dialog import Ui_Form
 
 
 class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
@@ -48,6 +49,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 
         self.customButton.clicked.connect(self.dialogbox) 
         self.codeLength = []
+        self.customQTable = np.empty(64)
 
     @QtCore.pyqtSlot()
     def launchThread(self,option):
@@ -83,7 +85,24 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                     cap = cv2.VideoCapture(fileName) #Read the video File
                     frames,frame_num,fps = self.readVideo(cap)
                     self.debugPrint("Encoding..........")
+                    
+                    if (self.FFTRadio.isChecked()):
+                        pass
+                    elif (self.DCTRadio.isChecked()):
+                        k=1
+                    elif (self.DSTRadio.isChecked()):
+                        k=2
 
+                    if (self.yChromRadio.isChecked()):
+                        pass
+                    elif (self.yLumRadio.isChecked()):
+                        y=1
+                    
+                    if (self.cChromRadio.isChecked()):
+                        pass
+                    elif (self.cLumradio.isChecked()):
+                        c=1
+            
                     counter=1
                     tablePath = self.model.getHuffPath()
                     encodePath = self.model.getDestPath()
@@ -91,7 +110,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                     f.close()
 
                     for frame in frames :
-                        self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath))
+                        self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath,k))
                         self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
                         counter=counter+1
                     self.encodeButton.setEnabled(True)
@@ -143,10 +162,8 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                     codec_id = "mp4v"
                     fourcc = cv2.VideoWriter_fourcc(*codec_id)
                     out = cv2.VideoWriter(outputPath, fourcc, int(fps), (width, height)) # bikin fungsi ambil row, cols
-                    # video = np.array(frames)
-                    # video = np.stack(video, axis=0) # dimensions (T, H, W, C)
                     video=frames
-                    # np.split(video, frame_num, axis=0)
+
 
                     for frame in video: #Jumlah frame?
                         frame_bgr = cv2.cvtColor(frame, cv2.COLOR_YCR_CB2BGR)
@@ -338,31 +355,83 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 class MyDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.ui = Ui_Dialog()
+        self.ui = Ui_Form()
         self.ui.setupUi(self)
-        self.ui.dialogButton.clicked.connect(self.returnTable)
+        self.ui.okButton.clicked.connect(self.returnTable)
  
     def returnTable(self):
-        pass
+        MainWindow.customQtable = [
+            self.ui.tab0.text(),
+            self.ui.tab1.text(),
+            self.ui.tab2.text(),
+            self.ui.tab3.text(),
+            self.ui.tab4.text(),
+            self.ui.tab5.text(),
+            self.ui.tab6.text(),
+            self.ui.tab7.text(),
+            self.ui.tab8.text(),
+            self.ui.tab9.text(),
+            self.ui.tab10.text(),
+            self.ui.tab11.text(),
+            self.ui.tab12.text(),
+            self.ui.tab13.text(),
+            self.ui.tab14.text(),
+            self.ui.tab15.text(),
+            self.ui.tab16.text(),
+            self.ui.tab17.text(),
+            self.ui.tab18.text(),
+            self.ui.tab19.text(),
+            self.ui.tab20.text(),
+            self.ui.tab21.text(),
+            self.ui.tab22.text(),
+            self.ui.tab23.text(),
+            self.ui.tab24.text(),
+            self.ui.tab25.text(),
+            self.ui.tab26.text(),
+            self.ui.tab27.text(),
+            self.ui.tab28.text(),
+            self.ui.tab29.text(),
+            self.ui.tab30.text(),
+            self.ui.tab31.text(),
+            self.ui.tab32.text(),
+            self.ui.tab33.text(),
+            self.ui.tab34.text(),
+            self.ui.tab35.text(),
+            self.ui.tab36.text(),
+            self.ui.tab37.text(),
+            self.ui.tab38.text(),
+            self.ui.tab39.text(),
+            self.ui.tab40.text(),
+            self.ui.tab41.text(),
+            self.ui.tab42.text(),
+            self.ui.tab43.text(),
+            self.ui.tab44.text(),
+            self.ui.tab45.text(),
+            self.ui.tab46.text(),
+            self.ui.tab47.text(),
+            self.ui.tab48.text(),
+            self.ui.tab49.text(),
+            self.ui.tab50.text(),
+            self.ui.tab51.text(),
+            self.ui.tab52.text(),
+            self.ui.tab53.text(),
+            self.ui.tab54.text(),
+            self.ui.tab55.text(),
+            self.ui.tab56.text(),
+            self.ui.tab57.text(),
+            self.ui.tab58.text(),
+            self.ui.tab59.text(),
+            self.ui.tab60.text(),
+            self.ui.tab61.text(),
+            self.ui.tab62.text(),
+            self.ui.tab63.text(),
+            
+        ]
+        if '' in MainWindow.customQtable:
+            print("Please fill all table cells")
+            return
+        MainWindow.customQtable=[int(x) for x in MainWindow.customQtable]
 
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(780, 780)
-    
-        self.dialogButton = QtWidgets.QPushButton(Dialog)
-        self.dialogButton.setGeometry(QtCore.QRect(700,700,40,30))
-        self.dialogButton.setObjectName("OkButton")
-        self.table = QtWidgets.QTableWidget(Dialog)
-        self.table.setGeometry(QtCore.QRect(70,70,400,300))
-
-        
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
-
-    def retranslateUi(self, Dialog):
-        Dialog.setWindowTitle("Quantization Table")
-        self.dialogButton.setText("OK")
         
 
 def main():
