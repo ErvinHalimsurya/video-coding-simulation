@@ -13,6 +13,7 @@ from utility.model import Model
 from utility.encodelib import encode
 from utility.decodelib import decode, getDimension, zigzag_to_block
 from utility.dialog import Ui_Form
+from utility.help import Ui_Help
 
 
 class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
@@ -354,9 +355,8 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.decodedSize.setText('File Size: Not yet created')
 
     def displayHelpWindow(self):
-        pass
-        # self.myHelp = MyHelp()
-        # self.myHelp.show()
+        self.myHelp = MyHelp()
+        self.myHelp.show()
 
     def dialogbox(self):
         self.myDialog = MyDialog()
@@ -432,11 +432,15 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             
         ]
 
-        if '' in table:
-            self.debugPrint("Please fill all table cells")
+        if '' in table or 0 in table:
+            self.debugPrint("Please fill all table cells with value more than 0")
+            return
+        try:
+            table=[int(x) for x in table]
+        except:
+            self.debugPrint("Please fill all table with numbers")
             return
         
-        table=[int(x) for x in table]
         self.customQTable = zigzag_to_block(table)
         self.debugPrint("Custom Quantization Table has been set")
         self.debugPrint("Custom Quantization table : \n"+ str(self.customQTable))
@@ -464,10 +468,10 @@ class MyDialog(QDialog,Ui_Form):
         super(MyDialog, self).__init__(parent)
         self.setupUi(self)
 
-# class MyHelp(QDialog,Ui_Help):
-#     def __init__(self,parent=None):
-#         super(MyHelp, self).__init__(parent)
-#         self.setupUi(self)
+class MyHelp(QDialog,Ui_Help):
+    def __init__(self,parent=None):
+        super(MyHelp, self).__init__(parent)
+        self.setupUi(self)
  
     
 
