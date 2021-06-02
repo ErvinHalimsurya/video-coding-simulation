@@ -236,7 +236,7 @@ def encode(frame,frame_num,fps,tablepath,destpath,type,quantizationMethod,table 
             'ac_c': H_AC_C.value_to_bitstring_table()}
     write_table( tablepath, tables,( str(cols) + "," + str(rows) + "," + str(int(frame_num))+"," +str(int(fps)) ) )
     Length = write_to_file(destpath, dc, ac, blocks_count,tables)
-    return Length
+    return Length,block,quant_matrix
         
     
 

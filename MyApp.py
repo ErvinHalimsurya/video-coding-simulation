@@ -118,7 +118,8 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             f.close()
 
             for frame in frames :
-                self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath,self.k,self.y,self.customQTable))
+                length,block,quant=encode(frame,frame_num,fps,tablePath,encodePath,self.k,self.y,self.customQTable)
+                self.codeLength.append(length)
                 self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
                 counter=counter+1
             self.encodeButton.setEnabled(True)
@@ -126,6 +127,8 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             size = os.path.getsize(outputPath)
             size = round((size/1024),2)
             self.encSize.setText('File Size: '+ str(size) + ' KB')
+            self.debugPrint("Frame terakhir sebelum kuantisasi :\n"+str(block))
+            self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(quant))
                     
         
         else:
@@ -473,9 +476,6 @@ class MyHelp(QDialog,Ui_Help):
         super(MyHelp, self).__init__(parent)
         self.setupUi(self)
  
-    
-
-        
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
