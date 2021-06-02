@@ -126,7 +126,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.debugPrint("Done Encoding")
             size = os.path.getsize(outputPath)
             size = round((size/1024),2)
-            self.encSize.setText('File Size: '+ str(size) + ' KB')
+            self.encSize.setText('Encoded File Size: '+ str(size) + ' KB')
             self.debugPrint("Frame terakhir sebelum kuantisasi :\n"+str(block))
             self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(quant))
                     
@@ -303,9 +303,9 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.mediaPlayer1.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
             self.playButton1.setEnabled(True)
             self.sourceInput.setText(fileName)
-            size = os.path.getsize(self.model.getFileName())
-            size = round((size/1024),2)
-            self.SourceSize.setText('File Size: '+ str(size) + ' KB')
+            # size = os.path.getsize(self.model.getFileName())
+            # size = round((size/1024),2)
+            # self.SourceSize.setText('File Size: '+ str(size) + ' KB')
             
         
     # Buat nyari folder yang mau di bikinin hasil encodednya. Penamaan variabel agak ngaco
@@ -317,7 +317,6 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.debugPrint( "setting Encoding Folder : " + foldName )
             self.model.setDestFolder( foldName ) #Bikin folder + outputname
             self.DestInput.setText( self.model.getDestFolder())
-            # self.sourceSize.setText()
 
     # Return nama output encoded. Penamaan variabel agak ngaco biarin lah ahahahaha
     @QtCore.pyqtSlot()
