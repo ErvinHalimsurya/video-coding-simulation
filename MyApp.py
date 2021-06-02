@@ -72,76 +72,71 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         name = self.outputName.text()
         outputPath = self.model.getDestPath()
         if self.model.isValid(fileName):
-            try:
-                self.encodeButton.setEnabled(False)
-                # Kode encoding
-                cap = cv2.VideoCapture(fileName) #Read the video File
-                frames,frame_num,fps = self.readVideo(cap)
-                self.debugPrint("Encoding..........")
-                
-                if (self.FFTRadio.isChecked()):
-                    self.k=1
-                elif (self.DCTRadio.isChecked()):
-                    self.k=0
-                elif (self.DSTRadio.isChecked()):
-                    self.k=2
-
-                if (self.yChromRadio.isChecked()):
-                    self.y=0
-                elif (self.yLumRadio.isChecked()):
-                    self.y=1
-                else:
-                    self.y=2
-                    table=self.customQTable
-
-                if (self.cChromRadio.isChecked()):
-                    self.cbcr=0
-                elif (self.cLumRadio.isChecked()):
-                    self.cbcr=1
-                else:
-                    self.cbcr=2
-                    table=self.customQTable
-
-                # if (self.yChromRadio.isChecked()) and (self.cChromRadio.isChecked()): #Y dan CbCr pake chrom
-                #     self.y=0
-                # elif (self.yLumRadio.isChecked()) and (self.cChromRadio.isChecked()): # Y Lum, CbCr chrom
-                #     self.y=1
-                # elif (self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()): # YChrom, CbCr Lum
-                #     self.y=2
-                # elif (self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()): # Y and CbCr Lum
-                #     self.y=3
-                # elif(self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Lum, CbCr Custom
-                #     self.y=4
-                #     table=self.customQTable
-                # elif(self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Chrom, CbCr Custom
-                #     self.y=5
-                #     table=self.customQTable
-                # elif(self.cLumRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr lum, Y Custom
-                #     self.y=6
-                #     table=self.customQTable
-                # elif(self.cChromRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr chrom, Y Custom
-                #     self.y=7
-                #     table=self.customQTable
-                # else:       # All custom
-                #     self.y=8
-                #     table=self.customQTable
+            self.encodeButton.setEnabled(False)
+            # Kode encoding
+            cap = cv2.VideoCapture(fileName) #Read the video File
+            frames,frame_num,fps = self.readVideo(cap)
+            self.debugPrint("Encoding..........")
             
-                counter=1
-                tablePath = self.model.getHuffPath()
-                encodePath = self.model.getDestPath()
-                f = open(encodePath, 'wb')
-                f.close()
+            if (self.FFTRadio.isChecked()):
+                self.k=1
+            elif (self.DCTRadio.isChecked()):
+                self.k=0
+            elif (self.DSTRadio.isChecked()):
+                self.k=2
+            
+            # if (self.yChromRadio.isChecked()):
+            #     self.y=0
+            # elif (self.yLumRadio.isChecked()):
+            #     self.y=1
+            # else:
+            #     self.y=2
 
-                for frame in frames :
-                    self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath,self.k))
-                    self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
-                    counter=counter+1
-                self.encodeButton.setEnabled(True)
-                self.debugPrint("Done Encoding")
-                
-            except:
-                self.debugPrint("An error happened")
-                self.encodeButton.setEnabled(True)
+            # if (self.cChromRadio.isChecked()):
+            #     self.cbcr=0
+            #     self.customQTable = None
+            # elif (self.cLumRadio.isChecked()):
+            #     self.cbcr=1
+            #     self.customQTable = None
+            # else:
+            #     self.cbcr=2
+
+            if (self.yChromRadio.isChecked()) and (self.cChromRadio.isChecked()): #Y dan CbCr pake chrom
+                    self.y=0
+                    self.customQTable = None
+            elif (self.yLumRadio.isChecked()) and (self.cChromRadio.isChecked()): # Y Lum, CbCr chrom
+                    self.y=1
+                    self.customQTable = None
+            elif (self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()): # YChrom, CbCr Lum
+                    self.y=2
+                    self.customQTable = None
+            elif (self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()): # Y and CbCr Lum
+                    self.y=3
+                    self.customQTable = None
+            elif(self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Lum, CbCr Custom
+                    self.y=4
+            elif(self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Chrom, CbCr Custom
+                    self.y=5
+            elif(self.cLumRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr lum, Y Custom
+                    self.y=6
+            elif(self.cChromRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr chrom, Y Custom
+                    self.y=7
+            else:       
+                    self.y=8
+        
+            counter=1
+            tablePath = self.model.getHuffPath()
+            encodePath = self.model.getDestPath()
+            f = open(encodePath, 'wb')
+            f.close()
+
+            for frame in frames :
+                self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath,self.k,self.y,self.customQTable))
+                self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
+                counter=counter+1
+            self.encodeButton.setEnabled(True)
+            self.debugPrint("Done Encoding")
+                    
         
         else:
             self.debugPrint("Source file invalid!")
@@ -163,44 +158,39 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             elif name=="":
                 self.debugPrint("Determine the output video name first")
             else:
-                try:
-                    self.decodeButton.setEnabled(False)
-                    counter=1
-                    frames = []
-                    width,height,frame_num,fps = getDimension(tablePath)
-                    width = int(width)
-                    height = int(height)
-                    self.debugPrint("Width : %d" % (width))
-                    self.debugPrint("Height : %d" % (height))
-                    
-                    self.debugPrint("Decoding..........")
-                    i = 0
-                    with open(sourceFile,'rb') as file, open(tablePath,'r') as table:
-                        while(i<int(frame_num)):
-                            frame=decode(file.read(self.codeLength[i]),table,self.k)                        
-                            frames.append(frame)
-                            self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
-                            counter = counter+1
-                            i +=1
-                    
-                    codec_id = "mp4v"
-                    fourcc = cv2.VideoWriter_fourcc(*codec_id)
-                    out = cv2.VideoWriter(outputPath, fourcc, int(fps), (width, height)) # bikin fungsi ambil row, cols
-                    video=frames
+                self.decodeButton.setEnabled(False)
+                counter=1
+                frames = []
+                width,height,frame_num,fps = getDimension(tablePath)
+                width = int(width)
+                height = int(height)
+                self.debugPrint("Width : %d" % (width))
+                self.debugPrint("Height : %d" % (height))
+                
+                self.debugPrint("Decoding..........")
+                i = 0
+                with open(sourceFile,'rb') as file, open(tablePath,'r') as table:
+                    while(i<int(frame_num)):
+                        frame=decode(file.read(self.codeLength[i]),table,self.k,self.y,self.customQTable)                        
+                        frames.append(frame)
+                        self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
+                        counter = counter+1
+                        i +=1
+                
+                codec_id = "mp4v"
+                fourcc = cv2.VideoWriter_fourcc(*codec_id)
+                out = cv2.VideoWriter(outputPath, fourcc, int(fps), (width, height)) # bikin fungsi ambil row, cols
+                video=frames
 
 
-                    for frame in video: #Jumlah frame?
-                        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_YCR_CB2BGR)
-                        #frame = frame[0, :, :]
-                        out.write(frame_bgr)
-                    
-                    self.decodeButton.setEnabled(True)
-                    self.debugPrint("Done Decoding")
+                for frame in video: #Jumlah frame?
+                    frame_bgr = cv2.cvtColor(frame, cv2.COLOR_YCR_CB2BGR)
+                    #frame = frame[0, :, :]
+                    out.write(frame_bgr)
+                
+                self.decodeButton.setEnabled(True)
+                self.debugPrint("Done Decoding")
 
-                    
-                except:
-                    self.debugPrint("An error happened")
-                    self.decodeButton.setEnabled(True)
         else:
             self.debugPrint("Compressed file or table that is about to be decoded is invalid!")
     
