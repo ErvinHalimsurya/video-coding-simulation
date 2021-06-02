@@ -234,9 +234,9 @@ class Ui_MainWindow(object):
         self.FFTRadio = QtWidgets.QRadioButton(self.widget)
         self.FFTRadio.setObjectName("FFTRadio")
         self.verticalLayout_5.addWidget(self.FFTRadio)
-        self.DSTradio = QtWidgets.QRadioButton(self.widget)
-        self.DSTradio.setObjectName("DSTradio")
-        self.verticalLayout_5.addWidget(self.DSTradio)
+        self.DSTRadio = QtWidgets.QRadioButton(self.widget)
+        self.DSTRadio.setObjectName("DSTRadio")
+        self.verticalLayout_5.addWidget(self.DSTRadio)
         self.verticalLayout_6.addLayout(self.verticalLayout_5)
         self.widget1 = QtWidgets.QWidget(self.centralwidget)
         self.widget1.setGeometry(QtCore.QRect(500, 40, 231, 51))
@@ -277,9 +277,9 @@ class Ui_MainWindow(object):
         self.cChromRadio = QtWidgets.QRadioButton(self.widget2)
         self.cChromRadio.setObjectName("cChromRadio")
         self.verticalLayout_4.addWidget(self.cChromRadio)
-        self.cLumradio = QtWidgets.QRadioButton(self.widget2)
-        self.cLumradio.setObjectName("cLumradio")
-        self.verticalLayout_4.addWidget(self.cLumradio)
+        self.cLumRadio = QtWidgets.QRadioButton(self.widget2)
+        self.cLumRadio.setObjectName("cLumRadio")
+        self.verticalLayout_4.addWidget(self.cLumRadio)
         self.horizontalLayout_7.addLayout(self.verticalLayout_4)
 
         self.customButton = QtWidgets.QPushButton(self.centralwidget)
@@ -339,10 +339,10 @@ class Ui_MainWindow(object):
         self.yLumRadio.setText(_translate("MainWindow", "Luminance"))
         self.label_15.setText(_translate("MainWindow", "CbCr Component"))
         self.cChromRadio.setText(_translate("MainWindow", "Chrominance"))
-        self.cLumradio.setText(_translate("MainWindow", "Luminance"))
+        self.cLumRadio.setText(_translate("MainWindow", "Luminance"))
         self.customButton.setText(_translate("MainWindow", "Custom\n"
 "Quantization"))
-        self.DSTradio.setText(_translate("MainWindow", "DST"))
+        self.DSTRadio.setText(_translate("MainWindow", "DST"))
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
 

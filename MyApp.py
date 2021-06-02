@@ -1,16 +1,17 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtCore import QObject, pyqtSlot, QUrl
-from PyQt5.QtWidgets import QStyle,QDialog,QApplication
+from PyQt5.QtWidgets import QStyle,QDialog,QWidget
 import os
 import cv2
 import sys
 import threading
+import time
 import numpy as np
 from utility.mainwindow import Ui_MainWindow
 from utility.model import Model
 from utility.encodelib import encode
-from utility.decodelib import decode, getDimension
+from utility.decodelib import decode, getDimension, zigzag_to_block
 from utility.dialog import Ui_Form
 
 
@@ -34,8 +35,6 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         self.decodedName.returnPressed.connect(self.returnDecNameSlot)
         
         self.dispButton.clicked.connect(self.displayFile)
-        self.customButton.clicked.connect(self.dialogbox)
-
 
         self.mediaPlayer1 =  QMediaPlayer(None, QMediaPlayer.VideoSurface)
         self.mediaPlayer1.stateChanged.connect(self.mediaStateChanged1)
@@ -49,7 +48,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 
         self.customButton.clicked.connect(self.dialogbox) 
         self.codeLength = []
-        self.customQTable = np.empty(64)
+        
 
     @QtCore.pyqtSlot()
     def launchThread(self,option):
@@ -73,51 +72,76 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         name = self.outputName.text()
         outputPath = self.model.getDestPath()
         if self.model.isValid(fileName):
-            if outputFolder==None:
-                self.debugPrint("Determine the output folder first")
-            elif name=="":
-                self.debugPrint("Determine the output name first")
-            else:
-                try:
-                    self.encodeButton.setEnabled(False)
-                    
-                    # Kode encoding
-                    cap = cv2.VideoCapture(fileName) #Read the video File
-                    frames,frame_num,fps = self.readVideo(cap)
-                    self.debugPrint("Encoding..........")
-                    
-                    if (self.FFTRadio.isChecked()):
-                        self.k=1
-                    elif (self.DCTRadio.isChecked()):
-                        pass
-                    elif (self.DSTRadio.isChecked()):
-                        self.k=2
+            try:
+                self.encodeButton.setEnabled(False)
+                # Kode encoding
+                cap = cv2.VideoCapture(fileName) #Read the video File
+                frames,frame_num,fps = self.readVideo(cap)
+                self.debugPrint("Encoding..........")
+                
+                if (self.FFTRadio.isChecked()):
+                    self.k=1
+                elif (self.DCTRadio.isChecked()):
+                    self.k=0
+                elif (self.DSTRadio.isChecked()):
+                    self.k=2
 
-                    if (self.yChromRadio.isChecked()):
-                        pass
-                    elif (self.yLumRadio.isChecked()):
-                        self.y=1
-                    
-                    if (self.cChromRadio.isChecked()):
-                        pass
-                    elif (self.cLumradio.isChecked()):
-                        self.cbcr=1
+                if (self.yChromRadio.isChecked()):
+                    self.y=0
+                elif (self.yLumRadio.isChecked()):
+                    self.y=1
+                else:
+                    self.y=2
+                    table=self.customQTable
+
+                if (self.cChromRadio.isChecked()):
+                    self.cbcr=0
+                elif (self.cLumRadio.isChecked()):
+                    self.cbcr=1
+                else:
+                    self.cbcr=2
+                    table=self.customQTable
+
+                # if (self.yChromRadio.isChecked()) and (self.cChromRadio.isChecked()): #Y dan CbCr pake chrom
+                #     self.y=0
+                # elif (self.yLumRadio.isChecked()) and (self.cChromRadio.isChecked()): # Y Lum, CbCr chrom
+                #     self.y=1
+                # elif (self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()): # YChrom, CbCr Lum
+                #     self.y=2
+                # elif (self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()): # Y and CbCr Lum
+                #     self.y=3
+                # elif(self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Lum, CbCr Custom
+                #     self.y=4
+                #     table=self.customQTable
+                # elif(self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Chrom, CbCr Custom
+                #     self.y=5
+                #     table=self.customQTable
+                # elif(self.cLumRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr lum, Y Custom
+                #     self.y=6
+                #     table=self.customQTable
+                # elif(self.cChromRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr chrom, Y Custom
+                #     self.y=7
+                #     table=self.customQTable
+                # else:       # All custom
+                #     self.y=8
+                #     table=self.customQTable
             
-                    counter=1
-                    tablePath = self.model.getHuffPath()
-                    encodePath = self.model.getDestPath()
-                    f = open(encodePath, 'wb')
-                    f.close()
+                counter=1
+                tablePath = self.model.getHuffPath()
+                encodePath = self.model.getDestPath()
+                f = open(encodePath, 'wb')
+                f.close()
 
-                    for frame in frames :
-                        self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath,self.k))
-                        self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
-                        counter=counter+1
-                    self.encodeButton.setEnabled(True)
-                    self.debugPrint("Done Encoding")
-                except:
-                    self.debugPrint("An error happened")
-                    self.encodeButton.setEnabled(True)
+                for frame in frames :
+                    self.codeLength.append(encode(frame,frame_num,fps,tablePath,encodePath,self.k))
+                    self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
+                    counter=counter+1
+                self.encodeButton.setEnabled(True)
+                self.debugPrint("Done Encoding")
+                
+            except:
+                self.debugPrint("An error happened")
+                self.encodeButton.setEnabled(True)
         
         else:
             self.debugPrint("Source file invalid!")
@@ -172,9 +196,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                     
                     self.decodeButton.setEnabled(True)
                     self.debugPrint("Done Decoding")
-                    size = os.path.getsize(outputPath)
-                    size = round((size/1024),2)
-                    self.decodedSize.setText('File Size: '+ str(size) + ' KB')
+
                     
                 except:
                     self.debugPrint("An error happened")
@@ -243,6 +265,10 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                 self.mediaPlayer2.pause()
             else:
                 self.mediaPlayer2.play()
+                size = os.path.getsize(filename)
+                size = round((size/1024),2)
+                self.decodedSize.setText('File Size: '+ str(size) + ' KB')
+                        
         else:
             self.debugPrint("Video not yet created")
     
@@ -350,87 +376,111 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
     def dialogbox(self):
         self.myDialog = MyDialog()
         self.myDialog.show()
-
-
-class MyDialog(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.ui = Ui_Form()
-        self.ui.setupUi(self)
-        self.ui.okButton.clicked.connect(self.returnTable)
- 
+        self.myDialog.okButton.clicked.connect(self.returnTable)
+    
     def returnTable(self):
-        MainWindow.customQtable = [
-            self.ui.tab0.text(),
-            self.ui.tab1.text(),
-            self.ui.tab2.text(),
-            self.ui.tab3.text(),
-            self.ui.tab4.text(),
-            self.ui.tab5.text(),
-            self.ui.tab6.text(),
-            self.ui.tab7.text(),
-            self.ui.tab8.text(),
-            self.ui.tab9.text(),
-            self.ui.tab10.text(),
-            self.ui.tab11.text(),
-            self.ui.tab12.text(),
-            self.ui.tab13.text(),
-            self.ui.tab14.text(),
-            self.ui.tab15.text(),
-            self.ui.tab16.text(),
-            self.ui.tab17.text(),
-            self.ui.tab18.text(),
-            self.ui.tab19.text(),
-            self.ui.tab20.text(),
-            self.ui.tab21.text(),
-            self.ui.tab22.text(),
-            self.ui.tab23.text(),
-            self.ui.tab24.text(),
-            self.ui.tab25.text(),
-            self.ui.tab26.text(),
-            self.ui.tab27.text(),
-            self.ui.tab28.text(),
-            self.ui.tab29.text(),
-            self.ui.tab30.text(),
-            self.ui.tab31.text(),
-            self.ui.tab32.text(),
-            self.ui.tab33.text(),
-            self.ui.tab34.text(),
-            self.ui.tab35.text(),
-            self.ui.tab36.text(),
-            self.ui.tab37.text(),
-            self.ui.tab38.text(),
-            self.ui.tab39.text(),
-            self.ui.tab40.text(),
-            self.ui.tab41.text(),
-            self.ui.tab42.text(),
-            self.ui.tab43.text(),
-            self.ui.tab44.text(),
-            self.ui.tab45.text(),
-            self.ui.tab46.text(),
-            self.ui.tab47.text(),
-            self.ui.tab48.text(),
-            self.ui.tab49.text(),
-            self.ui.tab50.text(),
-            self.ui.tab51.text(),
-            self.ui.tab52.text(),
-            self.ui.tab53.text(),
-            self.ui.tab54.text(),
-            self.ui.tab55.text(),
-            self.ui.tab56.text(),
-            self.ui.tab57.text(),
-            self.ui.tab58.text(),
-            self.ui.tab59.text(),
-            self.ui.tab60.text(),
-            self.ui.tab61.text(),
-            self.ui.tab62.text(),
-            self.ui.tab63.text(),
+        table = [
+            self.myDialog.tab0.text(),
+            self.myDialog.tab1.text(),
+            self.myDialog.tab2.text(),
+            self.myDialog.tab3.text(),
+            self.myDialog.tab4.text(),
+            self.myDialog.tab5.text(),
+            self.myDialog.tab6.text(),
+            self.myDialog.tab7.text(),
+            self.myDialog.tab8.text(),
+            self.myDialog.tab9.text(),
+            self.myDialog.tab10.text(),
+            self.myDialog.tab11.text(),
+            self.myDialog.tab12.text(),
+            self.myDialog.tab13.text(),
+            self.myDialog.tab14.text(),
+            self.myDialog.tab15.text(),
+            self.myDialog.tab16.text(),
+            self.myDialog.tab17.text(),
+            self.myDialog.tab18.text(),
+            self.myDialog.tab19.text(),
+            self.myDialog.tab20.text(),
+            self.myDialog.tab21.text(),
+            self.myDialog.tab22.text(),
+            self.myDialog.tab23.text(),
+            self.myDialog.tab24.text(),
+            self.myDialog.tab25.text(),
+            self.myDialog.tab26.text(),
+            self.myDialog.tab27.text(),
+            self.myDialog.tab28.text(),
+            self.myDialog.tab29.text(),
+            self.myDialog.tab30.text(),
+            self.myDialog.tab31.text(),
+            self.myDialog.tab32.text(),
+            self.myDialog.tab33.text(),
+            self.myDialog.tab34.text(),
+            self.myDialog.tab35.text(),
+            self.myDialog.tab36.text(),
+            self.myDialog.tab37.text(),
+            self.myDialog.tab38.text(),
+            self.myDialog.tab39.text(),
+            self.myDialog.tab40.text(),
+            self.myDialog.tab41.text(),
+            self.myDialog.tab42.text(),
+            self.myDialog.tab43.text(),
+            self.myDialog.tab44.text(),
+            self.myDialog.tab45.text(),
+            self.myDialog.tab46.text(),
+            self.myDialog.tab47.text(),
+            self.myDialog.tab48.text(),
+            self.myDialog.tab49.text(),
+            self.myDialog.tab50.text(),
+            self.myDialog.tab51.text(),
+            self.myDialog.tab52.text(),
+            self.myDialog.tab53.text(),
+            self.myDialog.tab54.text(),
+            self.myDialog.tab55.text(),
+            self.myDialog.tab56.text(),
+            self.myDialog.tab57.text(),
+            self.myDialog.tab58.text(),
+            self.myDialog.tab59.text(),
+            self.myDialog.tab60.text(),
+            self.myDialog.tab61.text(),
+            self.myDialog.tab62.text(),
+            self.myDialog.tab63.text(),
             
         ]
-        if '' in MainWindow.customQtable:
-            print("Please fill all table cells")
+
+        if '' in table:
+            self.debugPrint("Please fill all table cells")
             return
-        MainWindow.customQtable=[int(x) for x in MainWindow.customQtable]
+        
+        table=[int(x) for x in table]
+        self.customQTable = zigzag_to_block(table)
+        self.debugPrint("Custom Quantization Table has been set")
+        self.debugPrint("Custom Quantization table : \n"+ str(self.customQTable))
+
+        self.yChromRadio.setAutoExclusive(False)
+        self.yLumRadio.setAutoExclusive(False)
+        self.cChromRadio.setAutoExclusive(False)
+        self.cLumRadio.setAutoExclusive(False)
+        self.yChromRadio.setChecked(False)
+        self.yLumRadio.setChecked(False)
+        self.cChromRadio.setChecked(False)
+        self.cLumRadio.setChecked(False)
+        self.yChromRadio.setAutoExclusive(True)
+        self.yLumRadio.setAutoExclusive(True)
+        self.cChromRadio.setAutoExclusive(True)
+        self.cLumRadio.setAutoExclusive(True)
+
+        self.myDialog.close()
+        
+
+
+
+class MyDialog(QDialog,Ui_Form):
+    def __init__(self,parent=None):
+        super(MyDialog, self).__init__(parent)
+        self.setupUi(self)
+        
+ 
+    
 
         
 
