@@ -49,7 +49,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         self.helpButton.clicked.connect(self.displayHelpWindow)
 
         self.customButton.clicked.connect(self.dialogbox) 
-        self.codeLength = []
+        
         
 
     @QtCore.pyqtSlot()
@@ -69,68 +69,73 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def Encode(self):
+        self.codeLength = []
         fileName = self.model.getFileName()
         outputFolder = self.model.getDestFolder()
         name = self.outputName.text()
         outputPath = self.model.getDestPath()
         if self.model.isValid(fileName):
-            self.encodeButton.setEnabled(False)
-            # Kode encoding
-            cap = cv2.VideoCapture(fileName) #Read the video File
-            frames,frame_num,fps,width,height = self.readVideo(cap)
-            orisize = ((int(width)*int(height)*int(frame_num)*16)/8)/1024
-            self.oriSize.setText("Original Video Size : %.2f KB" %(orisize))
-            self.debugPrint("Encoding..........")
+            if outputFolder==None:
+                self.debugPrint("Determine the output video folder first")
+            elif name=="":
+                self.debugPrint("Determine the output video name first")
+            else:
+                self.encodeButton.setEnabled(False)
+                # Kode encoding
+                cap = cv2.VideoCapture(fileName) #Read the video File
+                frames,frame_num,fps,width,height = self.readVideo(cap)
+                orisize = (((int(width)*int(height)*24)/8)/1024)*int(frame_num)
+                self.oriSize.setText("Original Video Size : %.2f KB" %(orisize))
+                self.debugPrint("Encoding..........")
+                
+                if (self.FFTRadio.isChecked()):
+                    self.k=1
+                elif (self.DCTRadio.isChecked()):
+                    self.k=0
+                elif (self.DSTRadio.isChecked()):
+                    self.k=2
+                if (self.yChromRadio.isChecked()) and (self.cChromRadio.isChecked()): #Y dan CbCr pake chrom
+                        self.y=0
+                        self.customQTable = None
+                elif (self.yLumRadio.isChecked()) and (self.cChromRadio.isChecked()): # Y Lum, CbCr chrom
+                        self.y=1
+                        self.customQTable = None
+                elif (self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()): # YChrom, CbCr Lum
+                        self.y=2
+                        self.customQTable = None
+                elif (self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()): # Y and CbCr Lum
+                        self.y=3
+                        self.customQTable = None
+                elif(self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Lum, CbCr Custom
+                        self.y=4
+                elif(self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Chrom, CbCr Custom
+                        self.y=5
+                elif(self.cLumRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr lum, Y Custom
+                        self.y=6
+                elif(self.cChromRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr chrom, Y Custom
+                        self.y=7
+                else:       
+                        self.y=8
             
-            if (self.FFTRadio.isChecked()):
-                self.k=1
-            elif (self.DCTRadio.isChecked()):
-                self.k=0
-            elif (self.DSTRadio.isChecked()):
-                self.k=2
-            if (self.yChromRadio.isChecked()) and (self.cChromRadio.isChecked()): #Y dan CbCr pake chrom
-                    self.y=0
-                    self.customQTable = None
-            elif (self.yLumRadio.isChecked()) and (self.cChromRadio.isChecked()): # Y Lum, CbCr chrom
-                    self.y=1
-                    self.customQTable = None
-            elif (self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()): # YChrom, CbCr Lum
-                    self.y=2
-                    self.customQTable = None
-            elif (self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()): # Y and CbCr Lum
-                    self.y=3
-                    self.customQTable = None
-            elif(self.yLumRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Lum, CbCr Custom
-                    self.y=4
-            elif(self.yChromRadio.isChecked()) and (self.cLumRadio.isChecked()==False) and (self.cChromRadio.isChecked()==False) : # Y Chrom, CbCr Custom
-                    self.y=5
-            elif(self.cLumRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr lum, Y Custom
-                    self.y=6
-            elif(self.cChromRadio.isChecked()) and (self.yLumRadio.isChecked()==False) and (self.yChromRadio.isChecked()==False) : # CbCr chrom, Y Custom
-                    self.y=7
-            else:       
-                    self.y=8
-        
-            counter=1
-            tablePath = self.model.getHuffPath()
-            encodePath = self.model.getDestPath()
-            f = open(encodePath, 'wb')
-            f.close()
+                counter=1
+                tablePath = self.model.getHuffPath()
+                encodePath = self.model.getDestPath()
+                f = open(encodePath, 'wb')
+                f.close()
 
-            for frame in frames :
-                length,block,quant=encode(frame,frame_num,fps,tablePath,encodePath,self.k,self.y,self.customQTable)
-                self.codeLength.append(length)
-                self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
-                counter=counter+1
-            self.encodeButton.setEnabled(True)
-            self.debugPrint("Done Encoding")
-            size = os.path.getsize(outputPath)
-            size = round((size/1024),2)
-            self.encSize.setText('Encoded File Size: '+ str(size) + ' KB')
-            self.debugPrint("Frame terakhir sebelum kuantisasi :\n"+str(block))
-            self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(quant))
+                for frame in frames :
+                    length,block,self.quant=encode(frame,frame_num,fps,tablePath,encodePath,self.k,self.y,self.customQTable)
+                    self.codeLength.append(length)
+                    self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
+                    counter=counter+1
+                self.encodeButton.setEnabled(True)
+                self.debugPrint("Done Encoding")
+                size = os.path.getsize(outputPath)
+                size = round((size/1024),2)
+                self.encSize.setText('Encoded File Size: '+ str(size) + ' KB')
+                self.debugPrint("Frame terakhir sebelum kuantisasi :\n"+str(block))
+                self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(self.quant))
                     
-        
         else:
             self.debugPrint("Source file invalid!")
 
@@ -274,6 +279,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         filename = self.model.getDestPath()
         if (self.model.isValid(filename)):
             self.textBrowser_2.setText(str(self.model.getDestContents()))
+            self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(self.quant))
         else:
             self.debugPrint("File has not been made yet!")
     
@@ -285,8 +291,17 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                 fin.seek(0)
                 contents = fin.read(2000-0)
             self.textBrowser_2.setText(contents)
+            self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(self.quant))
         else:
             self.debugPrint("File has not been made yet!")
+    
+    @QtCore.pyqtSlot()
+    def displayQuant(self):
+        filename = self.model.getHuffPath()
+        if (self.quant):
+            self.textBrowser_2.setText("Frame terakhir setelah kuantisasi :\n"+str(self.quant))
+        else:
+            self.debugPrint("Encode First!")
 
     @QtCore.pyqtSlot()
     def browseSourceSlot(self):
