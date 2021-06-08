@@ -10,6 +10,7 @@ All packages are obtaniable with pip:
 1. Bitarray 
 2. Pyqt5
 3. Scipy
+4. OpenCV
 ## Features
 ### Selectable Transform Methods
 Users can select to use Discrete Cosine Transform, Discrete Sine Transform, and Discrete Fourier Transform. 
