@@ -245,7 +245,7 @@ def decode(bytes,table,type, quantizationMethod, custom = None):
     if quantizationMethod <=3:
         y,cbcr = loadquantize(quantizationMethod)
     else:
-        y,cbcr = loadcustomTable(quantizationMethod,table)  
+        y,cbcr = loadcustomTable(quantizationMethod,custom)  
     # j antara 1-160
     # i antara 1-90
     for block_index in range(blocks_count):

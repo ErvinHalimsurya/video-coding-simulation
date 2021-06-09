@@ -69,6 +69,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def Encode(self):
+        
         self.codeLength = []
         fileName = self.model.getFileName()
         outputFolder = self.model.getDestFolder()
@@ -133,8 +134,8 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                 size = os.path.getsize(outputPath)
                 size = round((size/1024),2)
                 self.encSize.setText('Encoded File Size: '+ str(size) + ' KB')
-                self.debugPrint("Frame terakhir sebelum kuantisasi :\n"+str(block))
-                self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(self.quant))
+                self.debugPrint("Block frame terakhir sebelum kuantisasi :\n"+str(block))
+                self.textBrowser_2.append("Block frame terakhir setelah kuantisasi :\n"+str(self.quant))
                     
         else:
             self.debugPrint("Source file invalid!")
@@ -156,38 +157,41 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             elif name=="":
                 self.debugPrint("Determine the output video name first")
             else:
-                self.decodeButton.setEnabled(False)
-                counter=1
-                frames = []
-                width,height,frame_num,fps = getDimension(tablePath)
-                width = int(width)
-                height = int(height)
-                self.debugPrint("Width : %d" % (width))
-                self.debugPrint("Height : %d" % (height))
-                
-                self.debugPrint("Decoding..........")
-                i = 0
-                with open(sourceFile,'rb') as file, open(tablePath,'r') as table:
-                    while(i<int(frame_num)):
-                        frame=decode(file.read(self.codeLength[i]),table,self.k,self.y,self.customQTable)                        
-                        frames.append(frame)
-                        self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
-                        counter = counter+1
-                        i +=1
-                
-                codec_id = "mp4v"
-                fourcc = cv2.VideoWriter_fourcc(*codec_id)
-                out = cv2.VideoWriter(outputPath, fourcc, int(fps), (width, height)) # bikin fungsi ambil row, cols
-                video=frames
+                try:
+                    self.decodeButton.setEnabled(False)
+                    counter=1
+                    frames = []
+                    width,height,frame_num,fps = getDimension(tablePath)
+                    width = int(width)
+                    height = int(height)
+                    self.debugPrint("Width : %d" % (width))
+                    self.debugPrint("Height : %d" % (height))
+                    
+                    self.debugPrint("Decoding..........")
+                    i = 0
+                    with open(sourceFile,'rb') as file, open(tablePath,'r') as table:
+                        while(i<int(frame_num)):
+                            frame=decode(file.read(self.codeLength[i]),table,self.k,self.y,self.customQTable)                        
+                            frames.append(frame)
+                            self.debugPrint('Progress = '+str(counter)+' out of '+str(frame_num))
+                            counter = counter+1
+                            i +=1
+                    
+                    codec_id = "mp4v"
+                    fourcc = cv2.VideoWriter_fourcc(*codec_id)
+                    out = cv2.VideoWriter(outputPath, fourcc, int(fps), (width, height)) # bikin fungsi ambil row, cols
+                    video=frames
 
 
-                for frame in video: #Jumlah frame?
-                    frame_bgr = cv2.cvtColor(frame, cv2.COLOR_YCR_CB2BGR)
-                    #frame = frame[0, :, :]
-                    out.write(frame_bgr)
-                
-                self.decodeButton.setEnabled(True)
-                self.debugPrint("Done Decoding")
+                    for frame in video: #Jumlah frame?
+                        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_YCR_CB2BGR)
+                        #frame = frame[0, :, :]
+                        out.write(frame_bgr)
+                    
+                    self.decodeButton.setEnabled(True)
+                    self.debugPrint("Done Decoding")
+                except:
+                    self.debugPrint("Somethin went wrong, please try again by restarting the app")
 
         else:
             self.debugPrint("Compressed file or table that is about to be decoded is invalid!")
@@ -259,19 +263,6 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                         
         else:
             self.debugPrint("Video not yet created")
-    
-
-    # @QtCore.pyqtSlot()
-    # def returnSourceSlot(self):
-    #     pass
-
-    # @QtCore.pyqtSlot()
-    # def returnDestSlot(self):
-    #     pass
-
-    # @QtCore.pyqtSlot()
-    # def returnDecFolderSlot(self):
-    #     pass
 
 
     @QtCore.pyqtSlot()
@@ -279,7 +270,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
         filename = self.model.getDestPath()
         if (self.model.isValid(filename)):
             self.textBrowser_2.setText(str(self.model.getDestContents()))
-            self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(self.quant))
+            self.textBrowser_2.append("Block frame terakhir setelah kuantisasi :\n"+str(self.quant))
         else:
             self.debugPrint("File has not been made yet!")
     
@@ -291,7 +282,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
                 fin.seek(0)
                 contents = fin.read(2000-0)
             self.textBrowser_2.setText(contents)
-            self.textBrowser_2.append("Frame terakhir setelah kuantisasi :\n"+str(self.quant))
+            self.textBrowser_2.append("Block frame terakhir setelah kuantisasi :\n"+str(self.quant))
         else:
             self.debugPrint("File has not been made yet!")
     
@@ -299,7 +290,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
     def displayQuant(self):
         filename = self.model.getHuffPath()
         if (self.quant):
-            self.textBrowser_2.setText("Frame terakhir setelah kuantisasi :\n"+str(self.quant))
+            self.textBrowser_2.setText("Block frame terakhir setelah kuantisasi :\n"+str(self.quant))
         else:
             self.debugPrint("Encode First!")
 
@@ -453,7 +444,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_MainWindow):
             self.debugPrint("Please fill all table cells with value more than 0")
             return
         try:
-            table=[int(x) for x in table]
+            table=[float(x) for x in table]
         except:
             self.debugPrint("Please fill all table with numbers")
             return
